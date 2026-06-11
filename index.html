@@ -1,1 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disiplin & AI Rutin Takip</title>
+    <style>
+        :root {
+            --bg-color: #0b0b0e;
+            --card-bg: #13131a;
+            --accent-color: #2563eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; padding-bottom: 50px; }
+        header { margin: 15px 0 25px 0; text-align: center; }
+        header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+        header p { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+        .section-card { background-color: var(--card-bg); border-radius: 16px; padding: 18px; margin-bottom: 15px; border: 1px solid #1f1f2e; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f1f2e; padding-bottom: 8px; }
+        .quick-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .tag-btn { background-color: #1f1f2e; color: var(--text-muted); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; border: 1px solid #2e2e42; cursor: pointer; }
+        .tag-btn:active { background-color: var(--accent-color); color: white; }
+        .progress-container { background-color: #1f1f2e; border-radius: 8px; height: 12px; width: 100%; margin: 8px 0 15px 0; overflow: hidden; }
+        .progress-bar { background-color: var(--success-color); height: 100%; width: 0%; transition: width 0.3s ease; }
+        .input-group { display: flex; gap: 8px; margin-bottom: 10px; }
+        input, textarea { background-color: #1f1f2e; border: 1px solid #2e2e42; color: white; padding: 12px; border-radius: 8px; font-size: 0.9rem; flex: 1; }
+        textarea { resize: none; height: 60px; font-family: inherit; }
+        button { background-color: var(--accent-color); color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+        button:active { opacity: 0.8; }
+        .summary-text { font-size: 0.95rem; font-weight: 600; display: flex; justify-content: space-between; }
+        .list-item { background-color: #1a1a26; padding: 12px; border-radius: 8px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; border-left: 3px solid var(--accent-color); }
+        .delete-btn { background: none; color: var(--danger-color); padding: 0; font-size: 0.85rem; }
+        .check-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background-color: #1a1a26; border-radius: 8px; margin-bottom: 8px; border: 1px solid #232334; }
+        .check-item label { font-size: 0.95rem; display: flex; align-items: center; gap: 12px; width: 100%; cursor: pointer; }
+        .check-item input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--success-color); }
+        .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-box { background-color: #1a1a26; padding: 12px; border-radius: 10px; text-align: center; border: 1px solid #232334; }
+        .stat-val { font-size: 1.3rem; font-weight: 800; margin: 6px 0; color: var(--warning-color); }
+        .blue-val { color: #38bdf8 !important; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .action-grid button { padding: 8px; font-size: 0.8rem; }
+        #ai-response { background-color: #1a1a26; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; margin-top: 10px; border-left: 3px solid #8b5cf6; max-height: 200px; overflow-y: auto; white-space: pre-line; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>BODYBUILDING & DISİPLİN</h1>
+        <p>Disiplin yeteneği yener.</p>
+    </header>
+
+    <div class="section-card">
+        <div class="section-title">
+            <span>Makro & Kalori Takibi</span>
+            <button onclick="clearNutrition()" class="delete-btn">Sıfırla</button>
+        </div>
+        <div class="quick-tags">
+            <span class="tag-btn" onclick="quickAdd('Tantuni Dürüm', 180, 420, 28)">+ 180g Tantuni</span>
+            <span class="tag-btn" onclick="quickAdd('Sarı Leblebi', 50, 180, 10)">+ 50g Leblebi</span>
+            <span class="tag-btn" onclick="quickAdd('Yulaf Ezmesi', 60, 220, 7)">+ 60g Yulaf</span>
+            <span class="tag-btn" onclick="quickAdd('Tavuk Pilav', 300, 550, 40)">+ Tavuk Pilav</span>
+        </div>
+        <div class="summary-text">
+            <span id="nutrition-summary">0 / 2100 kcal</span>
+            <span id="protein-summary">0g / 150g Protein</span>
+        </div>
+        <div class="progress-container"><div class="progress-bar" id="protein-bar"></div></div>
+        <div class="input-group">
+            <input type="text" id="food-name" placeholder="Yemek Adı">
+            <input type="number" id="food-weight" placeholder="Gram (g)" style="max-width: 80px;">
+        </div>
+        <div class="input-group">
+            <input type="number" id="food-cal" placeholder="Kalori">
+            <input type="number" id="food-protein" placeholder="Protein (g)">
+            <button onclick="addFood()" style="background-color: var(--success-color);">Ekle</button>
+        </div>
+        <div id="food-list"></div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title"><span>Program Listesi & Tik Atma</span></div>
+        <div class="quick-tags">
+            <span class="tag-btn" onclick="loadWorkoutTemplate('itish')">İtiş Günü Yükle</span>
+            <span class="tag-btn" onclick="loadWorkoutTemplate('cekish')">Çekiş Günü Yükle</span>
+            <span class="tag-btn" onclick="loadWorkoutTemplate('bacak')">Bacak Günü Yükle</span>
+        </div>
+        <div id="template-workout-list"></div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title">Animaljoy & Supplement Odası</div>
+        <div class="check-item"><label><input type="checkbox" id="supp-protein" onchange="saveSupps()"> Animaljoy Protein Tozu</label></div>
+        <div class="check-item"><label><input type="checkbox" id="supp-creatine" onchange="saveSupps()"> Kreatin (5g)</label></div>
+        <div class="check-item"><label><input type="checkbox" id="supp-vitamin" onchange="saveSupps()"> Vitamin / Omega 3</label></div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title">Zihin Netliği & Alışkanlık</div>
+        <div class="grid-two">
+            <div class="stat-box"><div style="font-size: 0.8rem; color: var(--text-muted);">Zinciri Kırma</div><div class="stat-val" id="streak-val">0 Gün</div></div>
+            <div class="stat-box"><div style="font-size: 0.8rem; color: var(--text-muted);">Soğuk Duş</div><div class="stat-val blue-val" id="shower-val">0 Kez</div></div>
+        </div>
+        <div class="action-grid">
+            <button onclick="updateStreak(-1)" style="background-color: var(--danger-color);">Süreci Sıfırla</button>
+            <button onclick="updateStreak(1)" style="background-color: var(--success-color);">+1 Temiz Gün</button>
+        </div>
+        <div class="action-grid" style="grid-template-columns: 1fr; margin-top: 6px;">
+            <button onclick="addShower()" style="background-color: #0284c7;">⚡ Soğuk Duş Alındı</button>
+        </div>
+    </div>
+
+    <div class="section-card" style="border-color: #8b5cf6;">
+        <div class="section-title" style="color: #c084fc;">🤖 AI Odak & Spor Koçu (Canlı Serverless)</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Soru sor veya aşağıya Reels tarifini yapıştır:</div>
+        <textarea id="ai-prompt" placeholder="Örn: Bugün enerjim çok düşük... VEYA Reels tarif metnini buraya yapıştır..."></textarea>
+        <div class="action-grid" style="grid-template-columns: 1fr 1fr; margin-top: 8px;">
+            <button onclick="askAI(false)" style="background-color: #8b5cf6;">Koça Soru Sor</button>
+            <button onclick="askAI(true)" style="background-color: var(--success-color);">Tarifi Kaloriye Çevir</button>
+        </div>
+        <div id="ai-response" style="display: none;">Koçun cevabı bekleniyor...</div>
+    </div>
+
+    <script>
+        window.onload = function() { loadNutrition(); loadSupps(); loadStreak(); loadShower(); renderTemplateWorkouts(); };
+
+        let foods = JSON.parse(localStorage.getItem('foods_v11')) || [];
+        const CALORIE_TARGET = 2100; const PROTEIN_TARGET = 150;
+
+        function addFood() {
+            const name = document.getElementById('food-name').value;
+            const weight = document.getElementById('food-weight').value || '0';
+            const cal = Number(document.getElementById('food-cal').value) || 0;
+            const protein = Number(document.getElementById('food-protein').value) || 0;
+            if(!name) return alert('Yemek adı girmelisin.');
+            foods.push({ name: `${name} (${weight}g)`, cal, protein }); saveAndRefreshNutrition();
+            document.getElementById('food-name').value = ''; document.getElementById('food-weight').value = '';
+            document.getElementById('food-cal').value = ''; document.getElementById('food-protein').value = '';
+        }
+        function quickAdd(name, weight, cal, protein) { foods.push({ name: `${name} (${weight}g)`, cal, protein }); saveAndRefreshNutrition(); }
+        function saveAndRefreshNutrition() { localStorage.setItem('foods_v11', JSON.stringify(foods)); loadNutrition(); }
+        function loadNutrition() {
+            const list = document.getElementById('food-list'); list.innerHTML = '';
+            let totalCal = 0; let totalProt = 0;
+            foods.forEach((f, index) => {
+                totalCal += f.cal; totalProt += f.protein;
+                list.innerHTML += `<div class="list-item"><span>${f.name} - ${f.cal} kcal / ${f.protein}g P</span><button class="delete-btn" onclick="deleteFood(${index})">Sil</button></div>`;
+            });
+            document.getElementById('nutrition-summary').innerText = `${totalCal} / ${CALORIE_TARGET} kcal`;
+            document.getElementById('protein-summary').innerText = `${totalProt}g / ${PROTEIN_TARGET}g Protein`;
+            document.getElementById('protein-bar').style.width = Math.min((totalProt / PROTEIN_TARGET) * 100, 100) + '%';
+        }
+        function deleteFood(index) { foods.splice(index, 1); saveAndRefreshNutrition(); }
+        function clearNutrition() { if(confirm('Sıfırlansın mı?')) { foods = []; localStorage.removeItem('foods_v11'); loadNutrition(); } }
+
+        const programTemplates = {
+            itish: ["Bench Press (4 Set)", "Incline Dumbbell Press (3 Set)", "Push-up Bar Şınav (Max Rep)", "Overhead Press (3 Set)", "Triceps Pushdown (4 Set)"],
+            cekish: ["Barfiks / Lat Pulldown (4 Set)", "Dumbbell Row (3 Set)", "Face Pull (3 Set)", "Biceps Curl (4 Set)", "Hammer Curl (3 Set)"],
+            bacak: ["Squat (4 Set)", "Leg Press (3 Set)", "Romanian Deadlift (3 Set)", "Calf Raise (4 Set)", "Plank (3 Set Azami)"]
+        };
+        let currentActiveWorkout = JSON.parse(localStorage.getItem('active_workout_v11')) || [];
+        function loadWorkoutTemplate(type) { currentActiveWorkout = programTemplates[type].map(name => ({ name, done: false })); localStorage.setItem('active_workout_v11', JSON.stringify(currentActiveWorkout)); renderTemplateWorkouts(); }
+        function toggleWorkoutItem(index) { currentActiveWorkout[index].done = !currentActiveWorkout[index].done; localStorage.setItem('active_workout_v11', JSON.stringify(currentActiveWorkout)); }
+        function renderTemplateWorkouts() {
+            const area = document.getElementById('template-workout-list'); area.innerHTML = '';
+            if(currentActiveWorkout.length === 0) { area.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; text-align:center; padding:10px;">Yukarıdan bir gün seçip programı yükle.</div>'; return; }
+            currentActiveWorkout.forEach((item, index) => { const checkedAttr = item.done ? 'checked' : ''; area.innerHTML += `<div class="check-item"><label><input type="checkbox" ${checkedAttr} onchange="toggleWorkoutItem(${index})"> ${item.name}</label></div>`; });
+        }
+
+        function saveSupps() { localStorage.setItem('supps_v11', JSON.stringify({ protein: document.getElementById('supp-protein').checked, creatine: document.getElementById('supp-creatine').checked, vitamin: document.getElementById('supp-vitamin').checked })); }
+        function loadSupps() { const supps = JSON.parse(localStorage.getItem('supps_v11')) || { protein: false, creatine: false, vitamin: false }; document.getElementById('supp-protein').checked = supps.protein; document.getElementById('supp-creatine').checked = supps.creatine; document.getElementById('supp-vitamin').checked = supps.vitamin; }
+
+        let streak = Number(localStorage.getItem('streak_v11')) || 0;
+        function loadStreak() { document.getElementById('streak-val').innerText = streak + " Gün"; }
+        function updateStreak(val) { if(val === -1) { if(confirm('Sıfırlansın mı?')) streak = 0; } else { streak += 1; } localStorage.setItem('streak_v11', streak); loadStreak(); }
+        let showerCount = Number(localStorage.getItem('shower_v11')) || 0;
+        function loadShower() { document.getElementById('shower-val').innerText = showerCount + " Kez"; }
+        function addShower() { showerCount += 1; localStorage.setItem('shower_v11', showerCount); loadShower(); }
+
+        // --- YENİ SUNUCUSUZ (SERVERLESS) İLETİŞİM FONKSİYONU ---
+        async function askAI(isRecipeMode) {
+            const promptInput = document.getElementById('ai-prompt').value;
+            const responseArea = document.getElementById('ai-response');
+
+            if(!promptInput) return alert('Lütfen metin alanını boş bırakmayın.');
+
+            responseArea.style.display = 'block';
+            responseArea.innerText = isRecipeMode ? 'Llama 3 gizli sunucu üzerinden hesaplıyor...' : 'Koç gizli odada strateji kuruyor...';
+
+            try {
+                // İstek doğrudan dışarıya değil, kendi Vercel sitemizin içindeki gizli odaya (/api/generate) gidiyor!
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promptInput, isRecipeMode })
+                });
+
+                const data = await response.json();
+                
+                if(data.error) {
+                    responseArea.innerText = data.error;
+                    return;
+                }
+
+                const reply = data.reply;
+
+                if(isRecipeMode) {
+                    const parts = reply.split(',');
+                    if(parts.length >= 3) {
+                        const rName = parts[0];
+                        const rCal = Number(parts[1]) || 0;
+                        const rProt = Number(parts[2]) || 0;
+                        
+                        foods.push({ name: `🤖 AI: ${rName}`, cal: rCal, protein: rProt });
+                        saveAndRefreshNutrition();
+                        responseArea.innerText = `Tarif Başarıyla Eklendi!\n${rName}: ${rCal} kcal / ${rProt}g Protein`;
+                        document.getElementById('ai-prompt').value = '';
+                    } else {
+                        responseArea.innerText = "Yapay zeka tarifi tam ayıramadı ama gelen cevap:\n" + reply;
+                    }
+                } else {
+                    responseArea.innerText = reply;
+                }
+            } catch (error) {
+                responseArea.innerText = 'Gizli odaya bağlanırken hata oluştu. Lütfen Vercel ayarlarını kontrol edin.';
+            }
+        }
+    </script>
+</body>
+</html>
 
